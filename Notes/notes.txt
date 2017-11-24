@@ -1,0 +1,75 @@
+Every Java program has at least three class loaders:
+
+• The bootstrap class loader
+
+• The extension class loader
+
+• The system class loader (sometimes also called the application class loader)
+
+BootStrap ClassLoader
+---------------------
+
+The bootstrap class loader loads the system classes (typically, from the JAR file rt.jar). 
+It is an integral part of the virtual machine and is usually implemented in C. There is no ClassLoader object corresponding to the bootstrap class loader. 
+For example,
+
+String.class.getClassLoader()
+
+returns null.
+
+Extension ClassLoader
+---------------------
+
+The extension class loader loads “standard extensions” from the jre/lib/ext directory. 
+
+System ClassLoader
+---------------------
+
+The system class loader loads the application classes. 
+It locates classes in the directories and JAR/ZIP files on the class path, as set by the CLASSPATH environment variable or the -classpath command-line option.
+
+In Oracle Java implementation, the extension and system class loaders are implemented in Java. Both are instances of the URLClassLoader class.
+
+Caution
+-------
+
+You can run into grief if you drop a JAR file into the jre/lib/ext directory and one of its classes needs to load a class that is not a system or extension class. 
+The extension class loader does not use the class path. Keep that in mind before you use the extension directory as a way to manage your class file hassles.
+
+Note
+----
+
+In addition to all the places already mentioned, classes can be loaded from the jre/lib/endorsed directory. 
+This mechanism can only be used to replace certain standard Java libraries (such as those for XML and CORBA support) with newer versions. 
+See http://docs.oracle.com/javase/8/docs/technotes/guides/ standards for details.
+
+Class loaders have a parent/child relationship. Every class loader except for the bootstrap one has a parent class loader.
+
+A simple example to load a custom class from a plugin.jar. Detailed Code is - 
+/Users/ac-rekharokkam/Documents/Rekha/workspace/core-java-volume-2/codeSnippets/URL_Classloader.jpg
+
+URL url = new URL("file:///path/to/plugin.jar");
+URLClassLoader pluginLoader = new URLClassLoader(new URL[] { url });
+Class<?> cl = pluginLoader.loadClass("mypackage.MyClass");
+
+Since no parent was specified in the URLClassLoader constructor, the parent of the pluginLoader is the system class loader.
+
+Refer to the design diagram to understand the structure of class loading hierarchy.
+/Users/ac-rekharokkam/Documents/Rekha/workspace/core-java-volume-2/design_diagrams/ClassLoader_Hierarchy.jpg
+
+system class loader, and that is the class loader used by Class.forName. 
+
+Thus, if you don’t do anything, all threads will have their context class loaders set to the system class loader.
+
+Tip 
+---
+
+If you write a method that loads a class by name, 
+	it is a good idea to offer the caller the choice between passing an explicit class loader and using the context class loader. 
+Don’t simply use the class loader of the method’s class.
+
+Example to set contextClassLoader
+
+Thread t = Thread.currentThread();
+ClassLoader loader = t.getContextClassLoader();
+Class cl = loader.loadClass(className);
